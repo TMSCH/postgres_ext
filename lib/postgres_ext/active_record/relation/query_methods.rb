@@ -1,5 +1,10 @@
 module ActiveRecord
   module QueryMethods
+
+    # Needs this to unscope :with
+    VALID_UNSCOPING_VALUES.add :with
+    Relation::MULTI_VALUE_METHODS.push :with
+
     class WhereChain
       def overlap(opts, *rest)
         substitute_comparisons(opts, rest, Arel::Nodes::Overlap, 'overlap')
