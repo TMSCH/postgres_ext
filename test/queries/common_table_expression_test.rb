@@ -29,6 +29,17 @@ describe 'Common Table Expression queries' do
       query = Person.with(testing: arel_manager)
       query.to_sql.must_equal 'WITH "testing" AS (SELECT "test"."foo" FROM "test") SELECT "people".* FROM "people"'
     end
+
+    it 'allows to unscope' do
+      arel_table = Arel::Table.new 'test'
+      arel_manager = arel_table.project arel_table[:foo]
+
+      query = Person.with(testing: arel_manager)
+      query = query.with(lucky_number_seven: Person.where(lucky_number: 7))
+
+      query = query.unscope(:with)
+      query.to_sql.must_equal 'SELECT "people".* FROM "people"'
+    end
   end
 
   describe '.with(common_table_exression_arel_nodes_as)' do

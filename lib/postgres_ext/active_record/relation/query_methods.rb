@@ -1,7 +1,10 @@
 module ActiveRecord
   module QueryMethods
 
-    # Needs this to unscope :with
+    #
+    # To enable unscoping with CTE from the query, we need to specify
+    # The relation name in these 2 lists (see https://github.com/rails/rails/blob/master/activerecord/lib/active_record/relation/query_methods.rb)
+    #
     VALID_UNSCOPING_VALUES.add :with
     Relation::MULTI_VALUE_METHODS.push :with
 
@@ -207,7 +210,10 @@ module ActiveRecord
             when String
               select = Arel::Nodes::SqlLiteral.new "(#{expression})"
             when ActiveRecord::Relation, Arel::SelectManager
-              select = Arel::Nodes::SqlLiteral.new "(#{expression.to_sql})"
+              # We needs to prepare statements here otherwise it will behave weirdly
+              ActiveRecord::Base.connection.unprepared_statement do
+                select = Arel::Nodes::SqlLiteral.new "(#{expression.to_sql})"
+              end
             end
             Arel::Nodes::As.new Arel::Nodes::SqlLiteral.new("\"#{name.to_s}\""), select
           end
